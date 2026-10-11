@@ -37,6 +37,30 @@ public static class NetworkConfig
         };
     }
 
+    /// <summary>Reads an adapter's current IPv4 settings into a preset (Name left blank).</summary>
+    public static Preset? ReadCurrent(string? adapterName)
+    {
+        var nic = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(n => n.Name == adapterName);
+        if (nic == null) return null;
+
+        var props = nic.GetIPProperties();
+        var addr = props.UnicastAddresses.FirstOrDefault(a => a.Address.AddressFamily == AddressFamily.InterNetwork);
+        var gw = props.GatewayAddresses.FirstOrDefault(g => g.Address.AddressFamily == AddressFamily.InterNetwork);
+        var dns = props.DnsAddresses.Where(d => d.AddressFamily == AddressFamily.InterNetwork).Select(d => d.ToString()).ToList();
+        bool dhcp = false;
+        try { dhcp = props.GetIPv4Properties().IsDhcpEnabled; } catch { }
+
+        return new Preset
+        {
+            Dhcp = dhcp,
+            Ip = addr?.Address.ToString() ?? "",
+            Mask = addr?.IPv4Mask?.ToString() ?? "255.255.255.0",
+            Gateway = gw?.Address.ToString() ?? "",
+            Dns1 = dns.ElementAtOrDefault(0) ?? "",
+            Dns2 = dns.ElementAtOrDefault(1) ?? "",
+        };
+    }
+
     public static async Task<(bool ok, string output)> ApplyAsync(string adapter, Preset p)
     {
         var steps = new List<string[]>();

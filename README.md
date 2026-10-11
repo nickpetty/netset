@@ -4,10 +4,13 @@ A small Windows tray utility for switching a network adapter between saved IP pr
 
 ![NetSet main window](docs/screenshot.png)
 
+![New preset dialog with suggestions from the current adapter](docs/screenshot-editor.png)
+
 ## Features
 
 - Pick any network adapter and see its live status, IP, mask, gateway, DNS and MAC.
 - Save presets: DHCP, or static IP with mask, gateway and up to two DNS servers.
+- New presets start with the selected adapter's current settings as gray suggestions: press **Tab** in an empty field to accept one, or just type to replace it.
 - Mark presets as **favorites** (click the ★) and they appear when you right-click the tray icon, so switching is two clicks.
 - Import / export presets as JSON, with a merge-or-replace prompt on import.
 - **Run at startup** option in the tray menu.

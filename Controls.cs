@@ -246,15 +246,57 @@ public class ModernList : ListView
     }
 }
 
+/// <summary>
+/// TextBox that shows a gray suggestion while empty (native cue banner); Tab in an empty box accepts it.
+/// </summary>
+public class GhostTextBox : TextBox
+{
+    const int EM_SETCUEBANNER = 0x1501;
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, string lParam);
+
+    string _ghost = "";
+
+    public string Ghost
+    {
+        get => _ghost;
+        set { _ghost = value ?? ""; Apply(); }
+    }
+
+    /// <summary>Suggestions are only shown (and accepted) while the box is editable.</summary>
+    public void Apply()
+    {
+        if (!IsHandleCreated) return;
+        SendMessage(Handle, EM_SETCUEBANNER, (IntPtr)1, ReadOnly ? "" : _ghost); // 1 = keep showing while focused
+    }
+
+    protected override void OnHandleCreated(EventArgs e) { base.OnHandleCreated(e); Apply(); }
+    protected override void OnReadOnlyChanged(EventArgs e) { base.OnReadOnlyChanged(e); Apply(); }
+
+    protected override bool ProcessDialogKey(Keys keyData)
+    {
+        if (keyData == Keys.Tab && Text.Length == 0 && _ghost.Length > 0 && !ReadOnly)
+        {
+            Text = _ghost;
+            SelectionStart = Text.Length;
+            return true; // consumed: the next Tab moves on as usual
+        }
+        return base.ProcessDialogKey(keyData);
+    }
+}
+
 public class ModernTextBox : Panel
 {
-    readonly TextBox _tb = new()
+    readonly GhostTextBox _tb = new()
     {
         BorderStyle = BorderStyle.None,
         BackColor = Theme.Surface2,
         ForeColor = Theme.Text,
         Font = Theme.Ui,
     };
+
+    /// <summary>Gray suggestion shown while empty; press Tab to accept it.</summary>
+    public string Placeholder { get => _tb.Ghost; set => _tb.Ghost = value; }
 
     public ModernTextBox()
     {

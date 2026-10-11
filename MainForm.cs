@@ -262,7 +262,7 @@ public class MainForm : Form
 
     void EditPreset(Preset? existing)
     {
-        using var dlg = new PresetEditor(existing?.Clone());
+        using var dlg = new PresetEditor(existing?.Clone(), _adapter);
         if (dlg.ShowDialog(this) != DialogResult.OK) return;
 
         if (existing == null) _app.Settings.Presets.Add(dlg.Result);

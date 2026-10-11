@@ -18,7 +18,7 @@ public class PresetEditor : Form
 
     public Preset Result { get; private set; } = new();
 
-    public PresetEditor(Preset? preset)
+    public PresetEditor(Preset? preset, string? adapter = null)
     {
         var p = preset ?? new Preset { Dhcp = false };
         Theme.Init(this);
@@ -50,8 +50,9 @@ public class PresetEditor : Form
         buttons.Controls.Add(cancel);
 
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, Padding = new Padding(this.S(24), this.S(20), this.S(24), this.S(20)) };
-        _name.Margin = new Padding(0, 0, 0, this.S(18));
+        _name.Margin = new Padding(0, 0, 0, this.S(12));
         _fav.Margin = new Padding(0, this.S(8), 0, 0);
+
         foreach (var c in new Control[] { nameLabel, _name, _dhcp, _static, _fields, _fav, buttons }) root.Controls.Add(c);
         Controls.Add(root);
 
@@ -61,6 +62,7 @@ public class PresetEditor : Form
         _ip.Text = p.Ip; _mask.Text = p.Mask; _gw.Text = p.Gateway;
         _dns1.Text = p.Dns1; _dns2.Text = p.Dns2;
         _fav.Checked = p.Favorite;
+        if (preset == null && adapter != null) SuggestFromAdapter(adapter);
         _dhcp.CheckedChanged += (_, _) => SyncEnabled();
         SyncEnabled();
 
@@ -74,6 +76,24 @@ public class PresetEditor : Form
         if (keyData == Keys.Enter) { TryAccept(); return true; }
         if (keyData == Keys.Escape) { DialogResult = DialogResult.Cancel; return true; }
         return base.ProcessCmdKey(ref msg, keyData);
+    }
+
+    /// <summary>
+    /// For a new preset, offers the selected adapter's current settings as gray suggestions
+    /// in the empty fields. Tab accepts one; typing replaces it.
+    /// </summary>
+    void SuggestFromAdapter(string adapter)
+    {
+        var cur = NetworkConfig.ReadCurrent(adapter);
+        if (cur == null) return;
+
+        _name.Placeholder = $"{adapter} (current)";
+        _ip.Placeholder = cur.Ip;
+        _mask.Placeholder = cur.Mask;
+        _gw.Placeholder = cur.Gateway;
+        _dns1.Placeholder = cur.Dns1;
+        _dns2.Placeholder = cur.Dns2;
+        _mask.Text = ""; // the default mask would otherwise hide its suggestion
     }
 
     void AddField(string label, ModernTextBox box)
