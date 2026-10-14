@@ -56,7 +56,7 @@ public static class StartupTask
                 <AllowStartOnDemand>true</AllowStartOnDemand>
                 <Enabled>true</Enabled>
               </Settings>
-              <Actions Context="Author"><Exec><Command>{exe}</Command></Exec></Actions>
+              <Actions Context="Author"><Exec><Command>{exe}</Command><Arguments>--startup</Arguments></Exec></Actions>
             </Task>
             """;
     }

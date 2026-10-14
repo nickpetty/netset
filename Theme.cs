@@ -123,7 +123,7 @@ public static class Theme
 
         protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
         {
-            e.TextColor = e.Item.Enabled ? Text : TextDim;
+            e.TextColor = !e.Item.Enabled ? TextDim : e.Item.ForeColor == Accent ? Accent : Text;
             base.OnRenderItemText(e);
         }
 

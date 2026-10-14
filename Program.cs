@@ -16,6 +16,7 @@ static class Program
         if (!first) return;
 
         ApplicationConfiguration.Initialize();
-        Application.Run(new TrayApp(showWindow: args.Contains("--show")));
+        // --startup is passed by the run-at-logon task; --show forces the window open.
+        Application.Run(new TrayApp(showWindow: args.Contains("--show"), launchedAtStartup: args.Contains("--startup")));
     }
 }

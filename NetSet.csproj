@@ -9,7 +9,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>NetSet</AssemblyName>
     <RootNamespace>NetSet</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
 
     <!-- Single self-contained exe: no .NET runtime needed on the target machine. -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -19,6 +19,17 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <InvariantGlobalization>true</InvariantGlobalization>
     <DebugType>none</DebugType>
+
+    <!-- Size reduction. Partial trimming only trims assemblies that are marked trim-safe (the core
+         runtime libraries); WinForms itself is left intact because it is not trim-compatible. -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <_SuppressWinFormsTrimError>true</_SuppressWinFormsTrimError>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <DebuggerSupport>false</DebuggerSupport>
+    <EventSourceSupport>false</EventSourceSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="Exists('netset.ico')">
