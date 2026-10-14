@@ -277,9 +277,7 @@ public class GhostTextBox : TextBox
     {
         if (keyData == Keys.Tab && Text.Length == 0 && _ghost.Length > 0 && !ReadOnly)
         {
-            Text = _ghost;
-            SelectionStart = Text.Length;
-            return true; // consumed: the next Tab moves on as usual
+            Text = _ghost; // accept the suggestion, then fall through so Tab also moves to the next field
         }
         return base.ProcessDialogKey(keyData);
     }
@@ -309,6 +307,9 @@ public class ModernTextBox : Panel
         _tb.Leave += (_, _) => Invalidate();
         Click += (_, _) => _tb.Focus();
     }
+
+    /// <summary>Focuses the inner text box (a plain Panel cannot take focus).</summary>
+    public new bool Focus() => _tb.Focus();
 
     [AllowNull]
     public override string Text { get => _tb.Text; set => _tb.Text = value ?? ""; }
@@ -364,13 +365,32 @@ public class Choice : Control
             _checked = value;
             if (value && IsRadio && Parent != null)
                 foreach (var s in Parent.Controls.OfType<Choice>().Where(c => c != this && c.IsRadio)) s.Checked = false;
+            if (IsRadio && IsHandleCreated) TabStop = value;
             Invalidate();
             CheckedChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
-    protected override bool IsInputKey(Keys k) => k == Keys.Space || base.IsInputKey(k);
-    protected override void OnKeyDown(KeyEventArgs e) { if (e.KeyCode == Keys.Space) { OnClick(EventArgs.Empty); e.Handled = true; } base.OnKeyDown(e); }
+    protected override bool IsInputKey(Keys k) =>
+        k == Keys.Space || (IsRadio && k is Keys.Up or Keys.Down or Keys.Left or Keys.Right) || base.IsInputKey(k);
+
+    // A radio group is a single tab stop (the checked one); arrow keys move within the group.
+    protected override void OnHandleCreated(EventArgs e) { base.OnHandleCreated(e); TabStop = !IsRadio || _checked; }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Space) { OnClick(EventArgs.Empty); e.Handled = true; }
+        else if (IsRadio && e.KeyCode is Keys.Up or Keys.Down or Keys.Left or Keys.Right && Parent != null)
+        {
+            var group = Parent.Controls.OfType<Choice>().Where(c => c.IsRadio && c.Enabled).ToList();
+            int step = e.KeyCode is Keys.Up or Keys.Left ? -1 : 1;
+            var next = group[(group.IndexOf(this) + step + group.Count) % group.Count];
+            next.Focus();
+            next.Checked = true;
+            e.Handled = true;
+        }
+        base.OnKeyDown(e);
+    }
     protected override void OnClick(EventArgs e) { Focus(); Checked = IsRadio || !Checked; base.OnClick(e); }
     protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
     protected override void OnMouseLeave(EventArgs e) { _hover = false; Invalidate(); base.OnMouseLeave(e); }

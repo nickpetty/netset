@@ -48,6 +48,8 @@ public class PresetEditor : Form
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft, AutoSize = true, Margin = new Padding(0, this.S(16), 0, 0) };
         buttons.Controls.Add(save);
         buttons.Controls.Add(cancel);
+        cancel.TabIndex = 0; // Right-to-left layout puts Cancel on the left, so tab to it first
+        save.TabIndex = 1;
 
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, Padding = new Padding(this.S(24), this.S(20), this.S(24), this.S(20)) };
         _name.Margin = new Padding(0, 0, 0, this.S(12));

@@ -61,6 +61,31 @@ public static class NetworkConfig
         };
     }
 
+    /// <summary>One-line description for the tray menu, e.g. "192.168.1.66 (Static)".</summary>
+    public static string Summary(string? adapterName)
+    {
+        var nic = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(n => n.Name == adapterName);
+        var cur = ReadCurrent(adapterName);
+        if (nic == null || cur == null) return "No adapter";
+        if (nic.OperationalStatus != OperationalStatus.Up) return "Disconnected";
+        if (cur.Ip == "") return "No IP address";
+        return $"{cur.Ip} ({(cur.Dhcp ? "DHCP" : "Static")})";
+    }
+
+    /// <summary>True when the adapter's current IPv4 configuration is what the preset would set.</summary>
+    public static bool Matches(string? adapterName, Preset p)
+    {
+        var cur = ReadCurrent(adapterName);
+        if (cur == null) return false;
+        if (p.Dhcp || cur.Dhcp) return p.Dhcp && cur.Dhcp; // DNS source is not exposed, so DHCP matches on mode alone
+
+        static string[] Dns(Preset x) => new[] { x.Dns1, x.Dns2 }.Where(d => !string.IsNullOrWhiteSpace(d)).Select(d => d.Trim()).ToArray();
+        return cur.Ip == p.Ip.Trim()
+            && cur.Mask == p.Mask.Trim()
+            && cur.Gateway == p.Gateway.Trim()
+            && Dns(cur).SequenceEqual(Dns(p));
+    }
+
     public static async Task<(bool ok, string output)> ApplyAsync(string adapter, Preset p)
     {
         var steps = new List<string[]>();

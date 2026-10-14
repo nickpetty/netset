@@ -19,7 +19,8 @@ A small Windows tray utility for switching a network adapter between saved IP pr
 ## Tray menu
 
 - Left-click the tray icon to open the window.
-- Right-click for the current adapter, a "Change adapter" submenu, your favorite presets, Open, Run at startup and Exit.
+- Right-click for the current adapter and its IP, a "Change adapter" submenu, your favorite presets, Open, Run at startup and Exit.
+- The favorite that matches the adapter's current settings gets a checkmark; it is re-checked each time the menu opens, so changes made elsewhere uncheck it.
 - Closing the window hides it back to the tray; use **Exit** in the tray menu to quit.
 
 ## Build

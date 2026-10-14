@@ -61,8 +61,8 @@ public class TrayApp : ApplicationContext
     {
         _menu.Items.Clear();
 
-        var header = new ToolStripMenuItem($"Adapter: {Settings.Adapter ?? "(none)"}") { Enabled = false };
-        _menu.Items.Add(header);
+        _menu.Items.Add(new ToolStripMenuItem($"Adapter: {Settings.Adapter ?? "(none)"}") { Enabled = false });
+        _menu.Items.Add(new ToolStripMenuItem(NetworkConfig.Summary(Settings.Adapter)) { Enabled = false });
 
         var adapterMenu = new ToolStripMenuItem("Change adapter");
         Theme.StyleMenu((ToolStripDropDownMenu)adapterMenu.DropDown);
@@ -82,7 +82,12 @@ public class TrayApp : ApplicationContext
         foreach (var p in favs)
         {
             var preset = p;
-            var item = new ToolStripMenuItem(preset.Name) { Enabled = Settings.Adapter != null && !_busy };
+            // Re-read from the adapter every time the menu opens, so changes made elsewhere uncheck it.
+            var item = new ToolStripMenuItem(preset.Name)
+            {
+                Enabled = Settings.Adapter != null && !_busy,
+                Checked = NetworkConfig.Matches(Settings.Adapter, preset),
+            };
             item.ToolTipText = preset.Dhcp ? "DHCP" : preset.Ip;
             item.Click += async (_, _) => await ApplyAsync(preset, interactive: false);
             _menu.Items.Add(item);
